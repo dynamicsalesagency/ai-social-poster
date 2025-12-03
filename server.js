@@ -31,8 +31,16 @@ app.get("/", (req, res) => {
 });
 
 // --- Brighter Business AI: advanced multi-variant captions + hooks + hashtags ---
-app.post("/api/generate-post", async (req, res) => {
+app.all("/api/generate-post", async (req, res) => {
   try {
+    // If someone opens it in the browser (GET), show a simple message
+    if (req.method === "GET") {
+      return res.json({
+        success: false,
+        error: "Use POST with JSON { topic: '...' } to generate captions."
+      });
+    }
+
     const {
       topic,
       platform = "instagram",
@@ -263,8 +271,4 @@ Very important:
       details: err?.response?.data || err.message || String(err),
     });
   }
-});
-
-app.listen(PORT, () => {
-  console.log(`Brighter Business AI running on http://localhost:${PORT}`);
 });
