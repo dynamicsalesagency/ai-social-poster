@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Brighter Business AI – Outreach Caption Engine</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background: #020617;
+      color: #e5e7eb;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+    }
+
+    .shell {
+      width: 100%;
+      max-width: 1100px;
+      padding: 24px;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .logo-side {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .logo-mark {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #a7f3d0;
+    }
+
+    .tagline {
+      font-size: 13px;
+      color: #9ca3af;
+    }
+
+    .pill {
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      font-size: 11px;
+      color: #cbd5f5;
+      background: rgba(15, 23, 42, 0.9);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+      gap: 18px;
+    }
+
+    .panel {
+      background: radial-gradient(circle at top left, rgba(34, 197, 94, 0.08), rgba(15, 23, 42, 0.98));
+      border-radius: 18px;
+      padding: 18px 18px 20px;
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.7);
+    }
+
+    .panel-title {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .panel-sub {
+      font-size: 12px;
+      color: #9ca3af;
+      margin-bottom: 14px;
+    }
+
+    label {
+      font-size: 12px;
+      display: block;
+      margin-bottom: 6px;
+      color: #d1d5db;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 9px 11px;
+      border-radius: 10px;
+      border: 1px solid #374151;
+      background: #020617;
+      color: #f9fafb;
+      font-size: 13px;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 70px;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: #22c55e;
+      box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.3);
+    }
+
+    .row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    .col {
+      flex: 1;
+      min-width: 140px;
+    }
+
+    .mb-2 {
+      margin-bottom: 10px;
+    }
+
+    .mb-3 {
+      margin-bottom: 14px;
+    }
+
+    .toggle-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      padding: 5px 8px;
+      border-radius: 999px;
+      border: 1px solid #374151;
+      background: rgba(15, 23, 42, 0.95);
+      cursor: pointer;
+    }
+
+    .toggle input {
+      width: auto;
+      cursor: pointer;
+    }
+
+    button {
+      cursor: pointer;
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      border: none;
+      font-weight: 600;
+      font-size: 13px;
+      border-radius: 999px;
+      padding: 9px 14px;
+      transition: transform 0.08s ease, box-shadow 0.08s ease, filter 0.08s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    button:hover {
+      filter: brightness(1.05);
+      box-shadow: 0 10px 20px rgba(34, 197, 94, 0.3);
+    }
+
+    button:active {
+      transform: translateY(1px);
+      box-shadow: 0 4px 10px rgba(34, 197, 94, 0.25);
+    }
+
+    .status {
+      font-size: 12px;
+      margin-top: 6px;
+      min-height: 18px;
+      color: #9ca3af;
+    }
+
+    .status.error {
+      color: #fca5a5;
+    }
+
+    .status.success {
+      color: #6ee7b7;
+    }
+
+    .preset-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .preset-btn {
+      font-size: 11px;
+      border-radius: 999px;
+      border: 1px solid rgba(55, 65, 81, 0.9);
+      padding: 4px 8px;
+      background: rgba(15, 23, 42, 0.95);
+      cursor: pointer;
+      color: #cbd5f5;
+    }
+
+    .preset-btn:hover {
+      border-color: #22c55e;
+    }
+
+    .results-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .results-title {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .results-meta {
+      font-size: 11px;
+      color: #9ca3af;
+    }
+
+    .variants-holder {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-height: 260px;
+      overflow-y: auto;
+      padding-right: 4px;
+      margin-bottom: 10px;
+    }
+
+    .variants-holder.saved {
+      max-height: 180px;
+    }
+
+    .divider {
+      border: none;
+      border-top: 1px solid rgba(55, 65, 81, 0.8);
+      margin: 8px 0 10px;
+    }
+
+    .variant-card {
+      background: rgba(15, 23, 42, 0.96);
+      border-radius: 14px;
+      padding: 12px 12px 10px;
+      border: 1px solid rgba(75, 85, 99, 0.9);
+    }
+
+    .variant-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 4px;
+    }
+
+    .variant-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #9ca3af;
+    }
+
+    .variant-meta {
+      font-size: 11px;
+      color: #9ca3af;
+      text-align: right;
+    }
+
+    .hook-text {
+      font-size: 13px;
+      font-weight: 600;
+      color: #bbf7d0;
+      margin-bottom: 4px;
+    }
+
+    .caption-text {
+      font-size: 13px;
+      white-space: pre-wrap;
+      margin-bottom: 8px;
+    }
+
+    .hashtags-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+
+    .hashtag-chip {
+      padding: 3px 7px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid rgba(55, 65, 81, 0.9);
+      color: #e5e7eb;
+    }
+
+    .variant-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 6px;
+    }
+
+    .sm-btn {
+      font-size: 11px;
+      padding: 5px 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.7);
+      background: rgba(15, 23, 42, 0.95);
+      cursor: pointer;
+      color: #e5e7eb;
+    }
+
+    .sm-btn:hover {
+      border-color: #22c55e;
+      color: #bbf7d0;
+    }
+
+    @media (max-width: 800px) {
+      .layout {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    @media (max-width: 600px) {
+      .shell {
+        padding: 16px;
+      }
+      .panel {
+        padding: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <div class="header">
+      <div class="logo-side">
+        <div class="logo-mark">Brighter Business AI</div>
+        <div class="tagline">Advanced outreach captions that turn store owners into replies, leads, and clients.</div>
+      </div>
+      <div class="pill">
+        <span>🔥 Outreach Engine</span>
+        <span>•</span>
+        <span>Captions + Hooks + Hashtags</span>
+      </div>
+    </div>
+
+    <div class="layout">
+      <!-- LEFT: Controls -->
+      <div class="panel">
+        <div class="panel-title">Prompt & Targeting</div>
+        <div class="panel-sub">
+          Describe your offer once, choose your goal and style, then let Brighter Business AI generate multiple persuasive angles for store owners.
+        </div>
+
+        <div class="mb-2">
+          <label for="topic">What are you offering / talking about?</label>
+          <textarea id="topic" placeholder="e.g. Commission-based AI engine that brings consistent orders without ad spend. Mention 10% commission, no risk for the store owner, and that you handle all technical setup."></textarea>
+        </div>
+
+        <div class="preset-row">
+          <button type="button" class="preset-btn" data-preset="ai_engine">
+            AI engine for consistent orders
+          </button>
+          <button type="button" class="preset-btn" data-preset="audit">
+            Free store audit + fixes
+          </button>
+          <button type="button" class="preset-btn" data-preset="retention">
+            Turn old visitors into buyers
+          </button>
+        </div>
+
+        <div class="row mb-2">
+          <div class="col">
+            <label for="platform">Platform</label>
+            <select id="platform">
+              <option value="instagram">Instagram</option>
+              <option value="facebook">Facebook</option>
+              <option value="tiktok">TikTok</option>
+              <option value="whatsapp">WhatsApp / DM Style</option>
+              <option value="email">Email Style</option>
+            </select>
+          </div>
+          <div class="col">
+            <label for="tone">Tone</label>
+            <select id="tone">
+              <option value="friendly">Friendly</option>
+              <option value="professional">Professional</option>
+              <option value="bold">Bold & direct</option>
+              <option value="luxury">Premium / luxury</option>
+              <option value="casual">Casual & human</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row mb-2">
+          <div class="col">
+            <label for="goal">Main goal</label>
+            <select id="goal">
+              <option value="more_sales">More orders / sales</option>
+              <option value="more_traffic">More traffic / clicks</option>
+              <option value="leads">DMs / leads / conversations</option>
+              <option value="awareness">Brand awareness & trust</option>
+            </select>
+          </div>
+          <div class="col">
+            <label for="audience">Audience</label>
+            <select id="audience">
+              <option value="ecommerce_store_owners">E-commerce store owners</option>
+              <option value="local_business">Local business owners</option>
+              <option value="coaches_consultants">Coaches / consultants</option>
+              <option value="general">General online business owners</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row mb-2">
+          <div class="col">
+            <label for="style">Message format</label>
+            <select id="style">
+              <option value="social_post">Social post</option>
+              <option value="dm">DM / WhatsApp message</option>
+              <option value="email">Email outreach</option>
+            </select>
+          </div>
+          <div class="col">
+            <label for="language">Language</label>
+            <select id="language">
+              <option value="en">English</option>
+              <option value="de">German</option>
+              <option value="es">Spanish</option>
+              <option value="it">Italian</option>
+              <option value="fr">French</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row mb-2">
+          <div class="col">
+            <label for="variants">Number of angles</label>
+            <select id="variants">
+              <option value="1">1 variant</option>
+              <option value="2" selected>2 variants</option>
+              <option value="3">3 variants</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="toggle-row mb-2">
+          <label class="toggle">
+            <input type="checkbox" id="includeUrgency" checked />
+            <span>Use subtle urgency</span>
+          </label>
+          <label class="toggle">
+            <input type="checkbox" id="includeSocialProof" checked />
+            <span>Mention social proof</span>
+          </label>
+          <label class="toggle">
+            <input type="checkbox" id="mentionAI" checked />
+            <span>Highlight AI benefit</span>
+          </label>
+        </div>
+
+        <button id="generateBtn">
+          ✨ Generate Outreach Captions
+        </button>
+        <div id="status" class="status"></div>
+      </div>
+
+      <!-- RIGHT: Results -->
+      <div class="panel">
+        <div class="results-header">
+          <div class="results-title">Generated Variants</div>
+          <div class="results-meta" id="resultsMeta">No captions yet.</div>
+        </div>
+
+        <div id="variantsHolder" class="variants-holder">
+          <!-- Generated variants go here -->
+        </div>
+
+        <hr class="divider" />
+
+        <div class="results-header">
+          <div class="results-title">Saved Variants</div>
+          <div class="results-meta" id="savedMeta">Nothing saved yet.</div>
+        </div>
+
+        <div id="savedHolder" class="variants-holder saved">
+          <!-- Saved variants go here -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const generateBtn = document.getElementById("generateBtn");
+    const statusEl = document.getElementById("status");
+    const variantsHolder = document.getElementById("variantsHolder");
+    const resultsMeta = document.getElementById("resultsMeta");
+    const savedHolder = document.getElementById("savedHolder");
+    const savedMeta = document.getElementById("savedMeta");
+    const topicField = document.getElementById("topic");
+    const presetButtons = document.querySelectorAll(".preset-btn");
+
+    let savedVariants = [];
+
+    function loadSavedVariants() {
+      try {
+        const raw = localStorage.getItem("bbai_saved_variants");
+        savedVariants = raw ? JSON.parse(raw) : [];
+      } catch {
+        savedVariants = [];
+      }
+    }
+
+    function persistSavedVariants() {
+      try {
+        localStorage.setItem("bbai_saved_variants", JSON.stringify(savedVariants));
+      } catch {
+        // ignore
+      }
+    }
+
+    function getWordCount(text) {
+      if (!text) return 0;
+      return text
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean).length;
+    }
+
+    function getReadingTimeSeconds(words) {
+      const wpm = 200; // rough reading speed
+      return Math.max(10, Math.round((words / wpm) * 60));
+    }
+
+    function createVariantCard(v, index, isSaved = false) {
+      const words = getWordCount(v.caption || "");
+      const hashtagCount = Array.isArray(v.hashtags) ? v.hashtags.length : 0;
+      const readSecs = getReadingTimeSeconds(words);
+
+      const card = document.createElement("div");
+      card.className = "variant-card";
+
+      const top = document.createElement("div");
+      top.className = "variant-top";
+
+      const label = document.createElement("div");
+      label.className = "variant-label";
+      label.textContent = isSaved ? "Saved variant" : "Variant " + (index + 1);
+
+      const meta = document.createElement("div");
+      meta.className = "variant-meta";
+      meta.textContent = `~${words} words • ${hashtagCount} hashtags • ${readSecs}s read`;
+
+      top.appendChild(label);
+      top.appendChild(meta);
+      card.appendChild(top);
+
+      if (v.hook) {
+        const hookEl = document.createElement("div");
+        hookEl.className = "hook-text";
+        hookEl.textContent = v.hook;
+        card.appendChild(hookEl);
+      }
+
+      const captionEl = document.createElement("div");
+      captionEl.className = "caption-text";
+      captionEl.textContent = v.caption || "";
+      card.appendChild(captionEl);
+
+      const hashtagsContainer = document.createElement("div");
+      hashtagsContainer.className = "hashtags-list";
+
+      if (Array.isArray(v.hashtags)) {
+        v.hashtags.forEach((tag) => {
+          const span = document.createElement("span");
+          span.className = "hashtag-chip";
+          span.textContent = tag;
+          hashtagsContainer.appendChild(span);
+        });
+      }
+
+      card.appendChild(hashtagsContainer);
+
+      const actions = document.createElement("div");
+      actions.className = "variant-actions";
+
+      const copyCaptionBtn = document.createElement("button");
+      copyCaptionBtn.type = "button";
+      copyCaptionBtn.className = "sm-btn";
+      copyCaptionBtn.textContent = "Copy caption";
+
+      copyCaptionBtn.addEventListener("click", async () => {
+        try {
+          await navigator.clipboard.writeText(v.caption || "");
+          alert("Caption copied to clipboard.");
+        } catch (e) {
+          alert("Unable to copy automatically. Please copy manually.");
+        }
+      });
+
+      const copyAllBtn = document.createElement("button");
+      copyAllBtn.type = "button";
+      copyAllBtn.className = "sm-btn";
+      copyAllBtn.textContent = "Copy caption + hashtags";
+
+      copyAllBtn.addEventListener("click", async () => {
+        const combined =
+          (v.caption || "") +
+          "\n\n" +
+          (Array.isArray(v.hashtags) ? v.hashtags.join(" ") : "");
+        try {
+          await navigator.clipboard.writeText(combined);
+          alert("Caption + hashtags copied to clipboard.");
+        } catch (e) {
+          alert("Unable to copy automatically. Please copy manually.");
+        }
+      });
+
+      actions.appendChild(copyCaptionBtn);
+      actions.appendChild(copyAllBtn);
+
+      if (!isSaved) {
+        const saveBtn = document.createElement("button");
+        saveBtn.type = "button";
+        saveBtn.className = "sm-btn";
+        saveBtn.textContent = "Save variant";
+
+        saveBtn.addEventListener("click", () => {
+          savedVariants.push({
+            ...v,
+            savedAt: new Date().toISOString(),
+          });
+          persistSavedVariants();
+          renderSavedVariants();
+        });
+
+        actions.appendChild(saveBtn);
+      }
+
+      card.appendChild(actions);
+
+      return card;
+    }
+
+    function renderVariants(variants) {
+      variantsHolder.innerHTML = "";
+      variants.forEach((v, index) => {
+        const card = createVariantCard(v, index, false);
+        variantsHolder.appendChild(card);
+      });
+    }
+
+    function renderSavedVariants() {
+      savedHolder.innerHTML = "";
+      if (!savedVariants.length) {
+        savedMeta.textContent = "Nothing saved yet.";
+        return;
+      }
+
+      savedMeta.textContent = `${savedVariants.length} saved variant(s).`;
+      savedVariants.forEach((v, index) => {
+        const card = createVariantCard(v, index, true);
+        savedHolder.appendChild(card);
+      });
+    }
+
+    // Presets
+    presetButtons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const preset = btn.getAttribute("data-preset");
+        if (preset === "ai_engine") {
+          topicField.value =
+            "Commission-based AI power engine that optimizes Google Merchant Center and shopping surfaces to bring consistent orders without paid ads. Mention that the store owner only shares 10% commission on real orders, there is no upfront cost, and I handle all the technical work and optimization.";
+        } else if (preset === "audit") {
+          topicField.value =
+            "Free store audit that detects structure errors, slow loading, missing funnels, poor product data and low visibility on Google. I fix everything and only earn when the results and orders improve.";
+        } else if (preset === "retention") {
+          topicField.value =
+            "Retention and remarketing system that turns old visitors and abandoned carts into customers using automated flows and AI-optimized content without extra ad budget.";
+        }
+      });
+    });
+
+    generateBtn.addEventListener("click", async () => {
+      const topic = topicField.value.trim();
+      const platform = document.getElementById("platform").value;
+      const tone = document.getElementById("tone").value;
+      const goal = document.getElementById("goal").value;
+      const audience = document.getElementById("audience").value;
+      const style = document.getElementById("style").value;
+      const language = document.getElementById("language").value;
+      const variantsCount = document.getElementById("variants").value;
+      const includeUrgency = document.getElementById("includeUrgency").checked;
+      const includeSocialProof = document.getElementById("includeSocialProof").checked;
+      const mentionAI = document.getElementById("mentionAI").checked;
+
+      if (!topic) {
+        statusEl.textContent = "Please describe your offer or idea first.";
+        statusEl.className = "status error";
+        return;
+      }
+
+      statusEl.textContent = "Brighter Business AI is crafting your outreach captions...";
+      statusEl.className = "status";
+      variantsHolder.innerHTML = "";
+      resultsMeta.textContent = "Thinking...";
+
+      try {
+        const response = await fetch("http://localhost:5000/api/generate-post", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            topic,
+            platform,
+            tone,
+            goal,
+            audience,
+            style,
+            language,
+            variantsCount,
+            includeUrgency,
+            includeSocialProof,
+            mentionAI
+          })
+        });
+
+        const data = await response.json();
+
+        if (!data.success) {
+          console.error("Error:", data);
+          statusEl.textContent = "Failed to generate captions. Check your server logs.";
+          statusEl.className = "status error";
+          resultsMeta.textContent = "Generation failed.";
+          return;
+        }
+
+        renderVariants(data.variants || []);
+        resultsMeta.textContent = `${data.variantsCount || (data.variants || []).length} variant(s) generated for ${platform} in ${language.toUpperCase()}.`;
+
+        statusEl.textContent = "Captions ready. Choose the angle that feels best and send it.";
+        statusEl.className = "status success";
+      } catch (err) {
+        console.error(err);
+        statusEl.textContent = "Something went wrong. Make sure the backend is running.";
+        statusEl.className = "status error";
+        resultsMeta.textContent = "No captions available.";
+      }
+    });
+
+    // Init saved
+    loadSavedVariants();
+    renderSavedVariants();
+  </script>
+</body>
+</html>
