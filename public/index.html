@@ -528,6 +528,13 @@
     const topicField = document.getElementById("topic");
     const presetButtons = document.querySelectorAll(".preset-btn");
 
+    // 👇 IMPORTANT: correct backend base URL
+    const API_BASE =
+      window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1"
+        ? "http://localhost:5000"
+        : "https://ai-social-poster.onrender.com";
+
     let savedVariants = [];
 
     function loadSavedVariants() {
@@ -734,7 +741,7 @@
       resultsMeta.textContent = "Thinking...";
 
       try {
-        const response = await fetch("http://localhost:5000/api/generate-post", {
+        const response = await fetch(`${API_BASE}/api/generate-post`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json"
@@ -754,11 +761,25 @@
           })
         });
 
+        if (!response.ok) {
+          // HTTP-level error (400/500)
+          let errorText = `HTTP error ${response.status}`;
+          try {
+            const errJson = await response.json();
+            errorText = errJson.error || JSON.stringify(errJson);
+          } catch (_) {}
+          console.error("API HTTP error:", errorText);
+          statusEl.textContent = errorText;
+          statusEl.className = "status error";
+          resultsMeta.textContent = "Generation failed.";
+          return;
+        }
+
         const data = await response.json();
 
         if (!data.success) {
-          console.error("Error:", data);
-          statusEl.textContent = "Failed to generate captions. Check your server logs.";
+          console.error("API error:", data);
+          statusEl.textContent = data.error || "Failed to generate captions. Check your server logs.";
           statusEl.className = "status error";
           resultsMeta.textContent = "Generation failed.";
           return;
@@ -770,7 +791,7 @@
         statusEl.textContent = "Captions ready. Choose the angle that feels best and send it.";
         statusEl.className = "status success";
       } catch (err) {
-        console.error(err);
+        console.error("Network/JS error:", err);
         statusEl.textContent = "Something went wrong. Make sure the backend is running.";
         statusEl.className = "status error";
         resultsMeta.textContent = "No captions available.";
