@@ -5,6 +5,7 @@ const dotenv = require("dotenv");
 const path = require("path");
 const OpenAI = require("openai");
 
+// Load .env (used locally; on Render you set env vars in dashboard)
 dotenv.config();
 
 const app = express();
@@ -12,13 +13,15 @@ const PORT = process.env.PORT || 5000;
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
 if (!OPENAI_API_KEY) {
-  console.error("❌ OPENAI_API_KEY is missing in .env");
+  console.warn("⚠️ OPENAI_API_KEY is missing. Set it in .env (local) or in Render Environment variables.");
 }
 
+// OpenAI client
 const openai = new OpenAI({
   apiKey: OPENAI_API_KEY,
 });
 
+// Middleware
 app.use(cors());
 app.use(express.json());
 
@@ -30,17 +33,14 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
-// --- Brighter Business AI: advanced multi-variant captions + hooks + hashtags ---
-app.all("/api/generate-post", async (req, res) => {
-  try {
-    // If someone opens it in the browser (GET), show a simple message
-    if (req.method === "GET") {
-      return res.json({
-        success: false,
-        error: "Use POST with JSON { topic: '...' } to generate captions."
-      });
-    }
+// Health check (useful to test on Render)
+app.get("/api/health", (req, res) => {
+  res.json({ ok: true, message: "Brighter Business AI server is running ✅" });
+});
 
+// Brighter Business AI: generate long outreach captions + hooks + hashtags
+app.post("/api/generate-post", async (req, res) => {
+  try {
     const {
       topic,
       platform = "instagram",
@@ -56,9 +56,17 @@ app.all("/api/generate-post", async (req, res) => {
     } = req.body;
 
     if (!topic) {
-      return res
-        .status(400)
-        .json({ success: false, error: "topic is required" });
+      return res.status(400).json({
+        success: false,
+        error: "topic is required",
+      });
+    }
+
+    if (!OPENAI_API_KEY) {
+      return res.status(500).json({
+        success: false,
+        error: "OPENAI_API_KEY is not set on the server.",
+      });
     }
 
     const safeVariants = Math.min(
@@ -178,6 +186,7 @@ Very important:
 - The number of objects inside "variants" MUST be exactly ${safeVariants}.
 `;
 
+    // Call OpenAI
     const chatResponse = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
@@ -205,7 +214,7 @@ Very important:
         }));
       }
     } catch (e) {
-      // Fallback: treat full output as one caption
+      // If JSON parse fails, just return the raw text as one caption
       variants = [
         {
           hook: "",
@@ -222,7 +231,6 @@ Very important:
 
       let hook = (v.hook || "").trim();
       if (!hook && caption) {
-        // Derive hook from first sentence/line
         const split = caption.split(/[\n.!?]/);
         hook = split[0].trim().slice(0, 120);
       }
@@ -271,4 +279,9 @@ Very important:
       details: err?.response?.data || err.message || String(err),
     });
   }
+});
+
+// Start server
+app.listen(PORT, () => {
+  console.log(`Brighter Business AI running on port ${PORT}`);
 });
